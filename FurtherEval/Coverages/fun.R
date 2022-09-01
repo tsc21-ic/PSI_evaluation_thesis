@@ -23,6 +23,7 @@ Selection = function(y, X, type, p, lam = NULL, first=FALSE, signs=FALSE){
     # sel = as.integer(sub('.', '', rownames(tst)[tst]))
     out = rep(F, p)
     out[sel] = TRUE
+    return(out)
     # out = c(TRUE, out)     ## TRUE => selected variable , FALSE => not selected variable
   } else if (type == "lasso.fixed.lambda"){
     fit = glmnet(X, y, intercept = FALSE, standardize = TRUE)
@@ -62,6 +63,8 @@ confint.truesigma <- function (object, parm, level = 0.95, truesigma, df=NULL, e
   ci[] = cf[parm] + ses %o% fac
   return(ci)
 }
+
+
 
 
 # Estimator of the standard deviation
