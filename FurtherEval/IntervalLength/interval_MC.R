@@ -1,19 +1,11 @@
 pacman::p_load(selectiveInference, prospectr, knockoff, mvtnorm, glmnet, stabs, MASS, dplyr,ggthemes, kableExtra, ggplot2, tibble, tidyverse,
-               viridis, pbapply, data.table, progress, randomcoloR, cowplot, ggpubr,tcltk, ggh4x, patchwork, profvis, fGarch, mvtnorm, beepr, R.utils)
+               viridis, pbapply, data.table, progress, randomcoloR, cowplot, ggpubr,tcltk, ggh4x, patchwork, profvis, fGarch, mvtnorm, beepr)
 source("fun.R")
-
-## Simulation setting
-B = 100 ## samples
-SampleNormal = function(beta, X, sigma) X%*%beta + rnorm(dim(X)[1], sd = sigma)
-n = 100; p = 3; rho = 0.1
-sigma = 1; f=0.5; level=0.9; alpha=0.1
-beta = c(1,0.8,0.2)
-estimateVar=FALSE
-iters = 200  ## number of coverages to record
-###########################
+require(R.utils)
 
 ## To store MC data
 beta_poly = c()
+beta_obs_all = c()
 coverage_poly_ori = c()
 length_poly_ori = c()
 ## To store Theoretical data
@@ -23,6 +15,14 @@ length_poly_theory = c()
 coverage_poly_ori_R= c()
 length_poly_ori_R = c()
 
+B = 200 ## samples
+SampleNormal = function(beta, X, sigma) X%*%beta + rnorm(dim(X)[1], sd = sigma)
+n = 100; p = 3; rho = 0.1
+sigma = 1; f=0.5; level=0.9; alpha=0.1
+beta = c(1,0.5,0.2)
+estimateVar=FALSE
+iters = 300  ## number of coverages to record
+
 Sigma_X = matrix(nrow=p, ncol=p)
 for (i in 1:p){
   for (j in 1:p){
@@ -30,15 +30,15 @@ for (i in 1:p){
   }
 }
 
-pb = tkProgressBar(title = "Tk progress bar",
-                   label = "Percentage completed",
-                   min = 0,
-                   max = B,
-                   initial = 0,
-                   width = 300)
+pb = tkProgressBar(title = "Tk progress bar",      # Window title
+                   label = "Percentage completed", # Window label
+                   min = 0,      # Minimum value of the bar
+                   max = B, # Maximum value of the bar
+                   initial = 0,  # Initial value of the bar
+                   width = 300)  # Width of the window
 
 for (i in 1:iters){
-  set.seed(i+2000)
+  set.seed(i+6000)   # different seed
   X = rmvnorm(n, mean = rep(0, p), sigma = Sigma_X)
   y = SampleNormal(beta, X, sigma = sigma)    ## Actual sigma = 5
   
@@ -51,7 +51,6 @@ for (i in 1:iters){
   vars_initial = initial$vars
   vars_m = which(vars_initial)     ## selected variables' number for the sub-model
   X_m = X[,vars_m, drop=FALSE]
-  print(vars_m)
   if(length(vars_m) == 0){ next }
   
   # Actual values of sub-model coefficients
@@ -59,14 +58,15 @@ for (i in 1:iters){
   eta = X_m %*% (solve(t(X_m) %*% X_m))
   beta_obs = t(eta) %*% mu
   est_sigma = sigma_hat(y, X)   ## estimate variance case
+
   
   for (j in 1:length(vars_m)){
-    
+  
     cat(sprintf("Inference for variable %i in iteration %i \n",vars_m[j], i))
     ## Calculate residual
     eta_j = eta[,j, drop=FALSE]   ## want to test the variable j in X_m
     denom = sum(t(eta_j) %*% eta_j)
-    resid = (diag(n) - ((eta_j/denom) %*% t(eta_j))) %*% y  ## residual
+    resid = (diag(n) - ((eta_j/denom) %*% t(eta_j))) %*% y  ## residual: projection to orthogonal of eta (dim: 200 x 1)
     
     ## Actual projection (partial regression) parameter value
     beta_obs_j = beta_obs[j]
@@ -80,7 +80,6 @@ for (i in 1:iters){
       coverages = numeric(B)
       for(b in 1:B){
         condition = FALSE
-        
         counter = 1
         while(condition == FALSE){
           ## Generate beta_hat distribution
@@ -89,11 +88,13 @@ for (i in 1:iters){
           if(randomization){
             y_sim = y_sim + rnorm(n, sd=2.5*est_sig$sigmahat)
           }
-          selected_vars = Selection(y_sim, X, type="lasso.fixed.lambda", p = p, first=FALSE, lam=initial$lambda, signs = FALSE)
+          selected_vars = Selection(y_sim, X, type="lasso.fixed.lambda", p = p, first=FALSE, lam=initial$lambda, signs = FALSE)   ## Use the same lambda since it is a function of X and errors only
           if(all(selected_vars == vars_initial) & !is.na(selected_vars[vars_m[j]])){
             condition=TRUE
             mes = "OK"
+
           }
+          
           counter = counter + 1
           if((counter > 100)){
             print("here")
@@ -117,7 +118,6 @@ for (i in 1:iters){
         pctg <- paste(round(b/B *100, 0), "% completed")
         setTkProgressBar(pb, b, label = pctg)
       }
-      # print(paste0("Coverages:",coverages))
       return(mean(coverages, na.rm=TRUE)) ## cdf or pvalues
     }
     
@@ -224,6 +224,7 @@ for (i in 1:iters){
             if(is.nan(cdf)){ gb = 0 - (1-alpha/2) }
             if(gb<0){ condition = FALSE}
           }else{
+            # print("hi6")
             pvalue = pivot(b, randomization=randomization)
             gb <- pvalue-(1- alpha/2)
             if(is.nan(pvalue)){ gb = 0 - (1-alpha/2) }
@@ -236,13 +237,11 @@ for (i in 1:iters){
           }
         }
       }
-      
+
       ####################  start bisectioning ###############
       count = 1
       while(abs(b-a)>prec | count == 20){
-        
         c = (a+b)/2
-        
         if(lower_bound){
           cdf = pivot(c, lower_bound=lower_bound, randomization=randomization)
           gc = cdf - (1-alpha/2)
@@ -253,7 +252,6 @@ for (i in 1:iters){
           gc = pvalue - (1-alpha/2)
           if(is.nan(pvalue)){ gc = 0 - (1-alpha/2) }
         }
-        
         ## If exact convergence return the root, c
         if (gc==0) return(c)
         
@@ -271,15 +269,12 @@ for (i in 1:iters){
       }
       return((a+b)/2)
     }
-    
     print("LOWER")
-    lower = CI_bisect(pivot, alpha=alpha, lower_bound=TRUE)    ## -1.510391 (theory -1.5036848)
-    
+    lower = CI_bisect(pivot, alpha=alpha, lower_bound=TRUE)    
     print("UPPER")
-    upper = CI_bisect(pivot, alpha=alpha, lower_bound=FALSE)   ## -0.7805913 (theory -0.7659462)
-    
-    lower_R = CI_bisect(pivot, alpha=alpha, lower_bound=TRUE, randomization=TRUE)    ## -1.510391 (theory -1.5036848)
-    upper_R = CI_bisect(pivot, alpha=alpha, lower_bound=FALSE, randomization=TRUE)   ## -0.7805913 (theory -0.7659462
+    upper = CI_bisect(pivot, alpha=alpha, lower_bound=FALSE)   
+    lower_R = CI_bisect(pivot, alpha=alpha, lower_bound=TRUE, randomization=TRUE)   
+    upper_R = CI_bisect(pivot, alpha=alpha, lower_bound=FALSE, randomization=TRUE)
     
     coverage_poly_ori = c(coverage_poly_ori, (lower < beta_obs_j)*(upper > beta_obs_j))    ## check whether greater than the parameter value or not: if 0 => do not cover
     coverage_poly_ori_R = c(coverage_poly_ori_R, (lower_R < beta_obs_j)*(upper_R > beta_obs_j))    ## check whether greater than the parameter value or not: if 0 => do not cover
@@ -287,14 +282,15 @@ for (i in 1:iters){
     length_poly_ori = c(length_poly_ori, upper - lower)   ## calculate the length
     length_poly_ori_R = c(length_poly_ori_R, upper_R - lower_R)   ## calculate the length
   }
-  ######################## Theoretical comparison ##################
-  ### actual polyhedral lemma
-  if(estimateVar){
-    theory_res = fixedLassoInf(X, y, beta = initial$coefs, lambda = initial$lam, sigma = est_sigma$sigmahat,intercept = FALSE, type="partial")
-  }else{
-    theory_res = fixedLassoInf(X, y, beta = initial$coefs, lambda = initial$lam, sigma = sigma, intercept = FALSE, type="partial")
-  }
   
+  ######################## Theoretical comparison ##################
+    ### actual polyhedral lemma
+    if(estimateVar){
+      theory_res = fixedLassoInf(X, y, beta = initial$coefs, lambda = initial$lam, sigma = est_sigma$sigmahat,intercept = FALSE, type="partial")
+    }else{
+      theory_res = fixedLassoInf(X, y, beta = initial$coefs, lambda = initial$lam, sigma = sigma, intercept = FALSE, type="partial")
+    }
+
   ## Extract the CIs from theoretical
   CI = theory_res$ci
   
@@ -302,16 +298,17 @@ for (i in 1:iters){
   coverage_poly_theory = c(coverage_poly_theory, (CI[, 1] < beta_obs) * (CI[, 2] > beta_obs))
   ## Store Length for the iteration i
   length_poly_theory = c(length_poly_theory, CI[, 2] - CI[, 1])
+  ## Make CI for the iteration i
   beta_poly = c(beta_poly, abs(beta[vars_m]))
 }
 
 my_results=list(beta_poly=beta_poly,
-                     coverage_poly_theory=coverage_poly_theory,
-                     coverage_poly_ori=coverage_poly_ori,
-                     coverage_poly_ori_R=coverage_poly_ori_R,
-                     length_poly_theory=length_poly_theory,
-                     length_poly_ori=length_poly_ori,
-                     length_poly_ori_R=length_poly_ori_R
+          coverage_poly_theory=coverage_poly_theory,
+          coverage_poly_ori=coverage_poly_ori,
+          coverage_poly_ori_R=coverage_poly_ori_R,
+          length_poly_theory=length_poly_theory,
+          length_poly_ori=length_poly_ori,
+          length_poly_ori_R=length_poly_ori_R
 )
 
-# save(my_results, file="MC_length_10802.Rdata")
+# save(my_results, file= "MC_length_10502.Rdata")

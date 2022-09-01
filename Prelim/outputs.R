@@ -3,6 +3,7 @@ pacman::p_load(selectiveInference, prospectr, knockoff, mvtnorm, glmnet, stabs, 
 source("fun.R")
 require(R.utils)
 
+# setwd("~/PSI_evaluation_thesis-main/Prelim")
 ############ Load data ##############
 loadRData <- function(fileName){
   #loads an RData file, and returns it
@@ -10,8 +11,8 @@ loadRData <- function(fileName){
   get(ls()[ls() != "fileName"])
 }
 
-my_results=loadRData('0901_length10502.Rdata')
-my_results_DS_UV=loadRData('0901_DS_R_10502.Rdata')
+my_results=loadRData('MC_length_10802.Rdata')
+my_results_DS_UV=loadRData('DS_UV_length_10802.Rdata')
 
 cat_lists <- function(list1, list2) {  
   keys <- unique(c(names(list1), names(list2)))
@@ -19,6 +20,7 @@ cat_lists <- function(list1, list2) {
     set_names(keys)
 }
 my_results = cat_lists(my_results, my_results_DS_UV)
+
 my_results2=data.frame(
   beta=my_results$beta_poly,
   lee=my_results$length_poly_theory,
@@ -52,6 +54,7 @@ my_results2=my_results2 %>%
          my_methods=factor(name,levels=c("lee","mc","mc_r", 'DS', '(U, V)'),labels=method_names))
 
 my_methods = c("Lee_M,s", "MC_Lee_M", "MC_Lee_M+R", 'DS', '(U, V)')
+
 length_final=ggplot(data = my_results2, mapping = aes(x=my_methods, y=value))+
   geom_boxplot(position=position_dodge(0.7),linetype="dashed")+
   stat_boxplot(aes(ymin = ..lower.., ymax = ..upper.., fill=my_methods),outlier.shape = 1) +
@@ -69,7 +72,8 @@ length_final=ggplot(data = my_results2, mapping = aes(x=my_methods, y=value))+
         strip.text.x = element_text(size=15),
         axis.text.x = element_text(size=15))
 length_final
-# ggsave(length_final, file='length_final.pdf', width = 210, height = 297, units = "mm")
+
+# ggsave(length_final, file='length_10802_prelim.pdf', width = 210, height = 297, units = "mm")
 
 ######################## Prepare table  #######################
 
@@ -126,9 +130,8 @@ tab_data_prop = data.frame(beta=factor(my_results$beta_poly,levels=c("1","0.8", 
                            leeMs=my_results$length_poly_theory,
                            MC_M = my_results$length_poly_ori,
                            MC_MR = my_results$length_poly_ori_R)
-# MC_MR_more = my_results$length_poly_ori_R_more)
 tab_data_prop = tab_data_prop %>% split(.$beta)
-# filter(pmap_lgl(across(leeMs), ~is.infinite(...)))
+
 
 tab_data_prop = lapply(tab_data_prop, function(x){
   sapply(x[, 2:ncol(x)], function(y) format(round(mean(is.infinite(y))*100, 2), nsmall=2))
@@ -171,7 +174,6 @@ tab_data_final2= tab_data_final %>%
 col_names=c("Method", rep(c("Median length", "Coverage", "Infinite length (%)"),3))
 header_names = c("",setNames(3, "$\\beta_{i}=1$"),setNames(3, "$\\beta_{i}=0.1$"),setNames(3, "$\\beta_{i}=0$"))
 
-
 kbl(tab_data_final2,align = 'c',booktabs = T, escape = F, caption = "",
     # format="latex"
     col.names = col_names) %>%
@@ -182,5 +184,5 @@ kbl(tab_data_final2,align = 'c',booktabs = T, escape = F, caption = "",
 data.frame(beta=my_results$beta_poly) %>%
   group_by(beta) %>%
   summarise(n = n()) %>%
-  mutate(freq = n /300)
+  mutate(freq = n /200)
 

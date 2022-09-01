@@ -10,8 +10,8 @@ loadRData <- function(fileName){
   get(ls()[ls() != "fileName"])
 }
 
-my_results=loadRData('0901_length10502.Rdata')
-my_results_DS_UV=loadRData('0901_DS_R_10502.Rdata')
+my_results=loadRData('MC_length_10502.Rdata')
+my_results_DS_UV=loadRData('DS_UV_length_10502.Rdata')
 
 cat_lists <- function(list1, list2) {  
   keys <- unique(c(names(list1), names(list2)))
@@ -69,7 +69,7 @@ length_final=ggplot(data = my_results2, mapping = aes(x=my_methods, y=value))+
         strip.text.x = element_text(size=15),
         axis.text.x = element_text(size=15))
 length_final
-# ggsave(length_final, file='length_final.pdf', width = 210, height = 297, units = "mm")
+# ggsave(length_final, file='length_10502.pdf', width = 210, height = 297, units = "mm")
 
 ######################## Prepare table  #######################
 

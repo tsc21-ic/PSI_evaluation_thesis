@@ -177,4 +177,4 @@ my_results_DS_UV =list(beta_DS=beta_DS,
                        LENGTH_DS=LENGTH_DS,
                        LENGTH_R=LENGTH_R)
 
-# save(my_results_DS_UV, file="0826_DS_R_results.Rdata")
+# save(my_results_DS_UV, file="DS_UV_length_10802.Rdata")
