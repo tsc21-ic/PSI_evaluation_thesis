@@ -6,6 +6,6 @@ This repository replicates the results presented in my MSc in Statistics at Impe
 - `Prelim`: folder that includes all code required for replicating MC preliminary results in section 4.
 - `FurtherEval`: folder that includes all code required for replicating further MC evaluation results in section 4.
 
-## Pre-requisites
+## Prerequisites
 The code uses the statistical software `R` version 4.1.1.
 Additional installation of `R` packages are contained in each `R` files.
