@@ -1,4 +1,4 @@
-This repository replicates the results presented in my thesis:
+This repository replicates the results presented in my MSc in Statistics at Imperial College London thesis:
 # Comparative evaluation of post-selection inference methods with LASSO
 
 ## Contents
