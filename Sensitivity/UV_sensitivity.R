@@ -318,21 +318,21 @@ run_result_cov2(n,p,rhos,B = 2000, SelType, fs, level, SampleType = "sn", xi = x
 # true sigma = 5, true sigma = 1 (we know (U, V) is dependent on the sigma value)
 n = 200; p = 30; rhos = c(0, 0.5) ; SelType = "lasso"; fs = c(1/2, 3/4); level = 0.9
 ## sigma = 5
-run_result_cov2(n,p,rhos, B = 1000, SelType, fs, level, SampleType = "normal", sigma=5, estimateVar = FALSE, coefficient=TRUE)
-run_result_cov2(n,p,rhos, B = 1000, SelType, fs, level, SampleType = "normal", sigma=5, estimateVar = TRUE, coefficient=TRUE)
+run_result_cov2(n,p,rhos, B = 2000, SelType, fs, level, SampleType = "normal", sigma=5, estimateVar = FALSE, coefficient=TRUE)
+run_result_cov2(n,p,rhos, B = 2000, SelType, fs, level, SampleType = "normal", sigma=5, estimateVar = TRUE, coefficient=TRUE)
 
 ## Save results
-run_result_cov2(n,p,rhos, B = 1000, SelType, fs, level, SampleType = "normal", sigma=5, estimateVar = FALSE, coefficient=TRUE, save=TRUE)
-run_result_cov2(n,p,rhos, B = 1000, SelType, fs, level, SampleType = "normal", sigma=5, estimateVar = TRUE, coefficient=TRUE, save=TRUE)
+run_result_cov2(n,p,rhos, B = 2000, SelType, fs, level, SampleType = "normal", sigma=5, estimateVar = FALSE, coefficient=TRUE, save=TRUE)
+run_result_cov2(n,p,rhos, B = 2000, SelType, fs, level, SampleType = "normal", sigma=5, estimateVar = TRUE, coefficient=TRUE, save=TRUE)
 
 ## sigma = 1
 n = 200; p = 30; rhos = c(0, 0.5) ; SelType = "lasso"; fs = c(1/2, 3/4); level = 0.9
-run_result_cov2(n,p,rhos, B = 1000, SelType, fs, level, SampleType = "normal", sigma=1, estimateVar = FALSE, coefficient=TRUE)
-run_result_cov2(n,p,rhos, B = 1000, SelType, fs, level, SampleType = "normal", sigma=1, estimateVar = TRUE, coefficient=TRUE)
+run_result_cov2(n,p,rhos, B = 2000, SelType, fs, level, SampleType = "normal", sigma=1, estimateVar = FALSE, coefficient=TRUE)
+run_result_cov2(n,p,rhos, B = 2000, SelType, fs, level, SampleType = "normal", sigma=1, estimateVar = TRUE, coefficient=TRUE)
 
 ## Save results
-run_result_cov2(n,p,rhos, B = 1000, SelType, fs, level, SampleType = "normal", sigma=1, estimateVar = FALSE, coefficient=TRUE, save=TRUE)
-run_result_cov2(n,p,rhos, B = 1000, SelType, fs, level, SampleType = "normal", sigma=1, estimateVar = TRUE, coefficient=TRUE, save=TRUE)
+run_result_cov2(n,p,rhos, B = 2000, SelType, fs, level, SampleType = "normal", sigma=1, estimateVar = FALSE, coefficient=TRUE, save=TRUE)
+run_result_cov2(n,p,rhos, B = 2000, SelType, fs, level, SampleType = "normal", sigma=1, estimateVar = TRUE, coefficient=TRUE, save=TRUE)
 
 
 ## Projection
